@@ -1,8 +1,9 @@
 'use client'
 
-import React from 'react'
-import {Card, CardHeader, CardBody, CardFooter, Divider} from "@nextui-org/react";
+import React, {useState} from 'react'
+import {Card, CardHeader, CardBody, CardFooter, Divider, Spinner} from "@nextui-org/react";
 import {createClient} from "@supabase/supabase-js";
+import {Bounce, toast} from "react-toastify";
 
 const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY || '';
@@ -20,10 +21,25 @@ type Notes = {
 
 export default function HomePage () {
 
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [data, setData] = React.useState<Notes[] | null>()
 
     const getNotes = async () => {
-        const { data } = await supabase.from('catatan').select()
+        const { data, error } = await supabase.from('catatan').select()
+
+        if (error) toast.error('Error while processing data.', {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+        });
+
+        setIsLoading(false)
         setData(data)
     }
 
@@ -34,7 +50,9 @@ export default function HomePage () {
     return <>
         <h1 className="text-3xl text-center font-bold max-md:text-xl mb-16 max-md:mb-10">Catatan Listrik Kos</h1>
         <div className="flex flex-wrap justify-center max-md:flex-col gap-3 max-md:px-4">
-            {data?.map((note) => (
+            {isLoading ? (
+                <Spinner />
+            ) : data?.map((note) => (
                 <Card className="w-3/12 max-md:w-full px-2" key={note.id}>
                     <CardHeader className="flex gap-3">
                         <div className="flex flex-col">

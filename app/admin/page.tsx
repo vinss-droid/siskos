@@ -13,7 +13,7 @@ import {
 } from "@nextui-org/react";
 import {IconPencil, IconPlus, IconTrash} from "@tabler/icons-react";
 import {createClient} from "@supabase/supabase-js";
-import React from "react";
+import React, {useState} from "react";
 import {Bounce, toast} from "react-toastify";
 
 const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -53,6 +53,7 @@ export default function AdminPage() {
     const modalAdd = useDisclosure();
     const modalEdit = useDisclosure();
     const modalDelete = useDisclosure();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [data, setData] = React.useState<Notes[] | null>()
     const [dataNew, setDataNew] = React.useState<NewNote>()
     const [dataKWh, setDataKWh] = React.useState<DataKwh>()
@@ -64,6 +65,7 @@ export default function AdminPage() {
     }
 
     const addNotes = async () => {
+        setIsLoading(true)
         const {error} = await supabase.from('catatan')
             .insert({
                 nama: dataNew?.nama,
@@ -94,11 +96,13 @@ export default function AdminPage() {
             transition: Bounce,
         });
 
+        setIsLoading(false)
         getNotes();
         modalAdd.onClose()
     }
 
     const updateKWh = async () => {
+        setIsLoading(true)
         const id = dataKWh?.id ?? 0
         const {error} = await supabase.from('catatan')
             .update({
@@ -131,10 +135,12 @@ export default function AdminPage() {
             transition: Bounce,
         });
 
+        setIsLoading(false)
         modalEdit.onClose()
     }
 
     const deleteKamar = async () => {
+        setIsLoading(true)
         const id = dataKamar?.id ?? 0
         const {error} = await supabase.from('catatan')
             .delete()
@@ -164,6 +170,7 @@ export default function AdminPage() {
             transition: Bounce,
         });
 
+        setIsLoading(false)
         getNotes()
         modalDelete.onClose()
     }
@@ -253,7 +260,7 @@ export default function AdminPage() {
                                 ...dataNew, kamarId: parseInt(e.target.value)
                             })}
                         />
-                        <Button color="primary" className="mb-4 w-full" type="submit">
+                        <Button color="primary" className="mb-4 w-full" type="submit" isLoading={isLoading}>
                             Simpan
                         </Button>
                     </form>
@@ -295,7 +302,7 @@ export default function AdminPage() {
                                 ...dataKWh, KWhBulanIni: parseInt(e.target.value)
                             })}
                         />
-                        <Button color="primary" className="mb-4 w-full" type="submit">
+                        <Button color="primary" className="mb-4 w-full" type="submit" isLoading={isLoading}>
                             Simpan
                         </Button>
                     </form>
@@ -314,7 +321,7 @@ export default function AdminPage() {
             <ModalContent>
                 <ModalHeader className="flex flex-col gap-1">Hapus Data | {`${dataKamar?.penyewa} Kamar No.${dataKamar?.kamarId}`}</ModalHeader>
                 <ModalBody>
-                    <Button color="danger" className="mb-4 w-full" type="button" onPress={deleteKamar}>
+                    <Button color="danger" className="mb-4 w-full" type="button" onPress={deleteKamar} isLoading={isLoading}>
                         Hapus
                     </Button>
                 </ModalBody>
